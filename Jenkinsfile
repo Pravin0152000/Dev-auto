@@ -1,37 +1,30 @@
 pipeline {
-    agent any
-    tools{
-        maven 'maven_3_5_0'
+    agent any 
+    tools {
+        maven 'Maven_3.9.6'
     }
     stages{
-        stage('Build Maven'){
+        stage('checking into git hub'){
             steps{
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Java-Techie-jt/devops-automation']]])
-                sh 'mvn clean install'
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Java-Techie-jt/devops-automation']])
+                bat 'mvn clean install'
             }
         }
-        stage('Build docker image'){
+        stage('building docker image'){
             steps{
                 script{
-                    sh 'docker build -t javatechie/devops-integration .'
+                    bat 'docker build -t pravin052000/devops-integration .'
                 }
             }
         }
-        stage('Push image to Hub'){
+        stage('Pushing into docker hub'){
             steps{
                 script{
-                   withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                   sh 'docker login -u javatechie -p ${dockerhubpwd}'
-
+                    withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'Dockerhubcred')]) {
+                    bat 'docker login -u pravin052000 -p %Dockerhubcred%'
 }
-                   sh 'docker push javatechie/devops-integration'
-                }
-            }
-        }
-        stage('Deploy to k8s'){
-            steps{
-                script{
-                    kubernetesDeploy (configs: 'deploymentservice.yaml',kubeconfigId: 'k8sconfigpwd')
+                    
+                    bat 'docker push pravin052000/devops-integration'
                 }
             }
         }
